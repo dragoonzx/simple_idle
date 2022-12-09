@@ -65,7 +65,6 @@ contract IdleWorldTest is Test {
     }
 
     function testDepositNoPlayerRevert() public {
-        // imitate address with some coins
         uint256 slot = stdstore
             .target(address(coin))
             .sig(coin.balanceOf.selector)
@@ -76,7 +75,7 @@ contract IdleWorldTest is Test {
         bytes32 mockedSomeoneCoinBalance = bytes32(abi.encode(10 * 1e18));
         vm.store(address(coin), loc, mockedSomeoneCoinBalance);
         assertEq(coin.balanceOf(address(1)), 10 * 1e18);
-        // try to deposit into the game to become player
+
         vm.startPrank(address(1));
         coin.approve(address(world), 10 * 1e18);
         vm.expectRevert(NotPlayer.selector);
@@ -84,30 +83,21 @@ contract IdleWorldTest is Test {
         vm.stopPrank();
     }
 
-    // function testBooster() public {
-    //     uint256 slot = stdstore
-    //         .target(address(world))
-    //         .sig(world.players.selector)
-    //         .with_key(1)
-    //         .find();
-    //     bytes32 loc = bytes32(slot);
+    function testBooster() public {
+        _startWithAdressOne();
+        uint256 timestampWithCoins = block.timestamp + 150;
+        vm.warp(timestampWithCoins);
 
-    //     bytes32 mockedPlayerWithBalance = bytes32(
-    //         abi.encode(block.timestamp, world.BASE_ACCELERATION, 150 * 1e18)
-    //     );
-    //     vm.store(address(world), loc, mockedPlayerWithBalance);
+        assertEq(world.calculateCoins(address(1)), 150 * 1e18);
 
-    //     (, , uint256 currentBalance) = world.players(address(1));
-    //     // assertEq(currentBalance, 150 * 1e18);
-    //     assertEq(world.calculateCoins(address(1)), 150 * 1e18);
+        vm.startPrank(address(1));
+        world.boost(Booster.Factory);
 
-    //     vm.startPrank(address(1));
-    //     // world.boost(Booster.Factory);
+        uint256 secondsAfter = 200;
+        vm.warp(timestampWithCoins + secondsAfter);
+        // boosted: 1 coin/sec => 1 + 5 => 6 coin/sec
+        assertEq(world.calculateCoins(address(1)), 200 * 6 * 1e18);
 
-    //     // uint256 secondsAfter = 200;
-    //     // vm.warp(block.timestamp + secondsAfter);
-    //     // assertEq(world.calculateCoins(address(1)), 200 * 5 * 1e18);
-
-    //     vm.stopPrank();
-    // }
+        vm.stopPrank();
+    }
 }

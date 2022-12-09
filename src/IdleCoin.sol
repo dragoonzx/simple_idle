@@ -11,6 +11,8 @@ contract IdleCoin is ERC20, Ownable {
         ERC20(_name, _symbol, DECIMALS)
     {}
 
+    /// @notice Fills the IdleWorld with IdleCoins, call right after IdleWorld deploy
+    /// @param idleWorld contract address
     function fillWorld(address idleWorld) external onlyOwner {
         _mint(idleWorld, 2**256 - 1);
     }

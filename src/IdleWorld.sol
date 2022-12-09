@@ -15,6 +15,9 @@ enum Booster {
     Country
 }
 
+/// @title Simple idle mechanic showcase contract
+/// @author Max S (https://github.com/dragoonzx)
+/// @notice Idle mechanic when player earns by doing nothing and can buy boosters to earn more coins per second
 contract IdleWorld {
     IdleAccess public immutable idleAccess;
     IdleCoin public immutable idleCoin;
@@ -33,6 +36,7 @@ contract IdleWorld {
         idleCoin = _idleCoin;
     }
 
+    /// @notice Check if caller has IdleAccess NFT, if true => start to earn to that address
     function start() external {
         if (idleAccess.balanceOf(msg.sender) == 0) {
             revert HasNoAccess();
@@ -63,6 +67,8 @@ contract IdleWorld {
             ((block.timestamp - updatedTimestamp) * acceleration * 1e18);
     }
 
+    /// @notice Player can deposit IdleCoin
+    /// @param amount IdleCoin token amount
     function deposit(uint256 amount) external onlyPlayer {
         PlayerInfo memory info = players[msg.sender];
 
@@ -83,6 +89,8 @@ contract IdleWorld {
         emit Deposit(msg.sender, amount);
     }
 
+    /// @notice Player can withdraw IdleCoin
+    /// @param amount IdleCoin token amount
     function withdraw(uint256 amount) external onlyPlayer {
         PlayerInfo memory info = players[msg.sender];
 
@@ -107,6 +115,8 @@ contract IdleWorld {
         emit Withdraw(msg.sender, amount);
     }
 
+    /// @notice Player can but booster to earn more IdleCoin per second
+    /// @param booster booster type from Booster enum
     function boost(Booster booster) external onlyPlayer {
         (uint256 price, uint256 bonus) = _boosterPriceBonus(booster);
 
@@ -156,11 +166,10 @@ contract IdleWorld {
     }
 
     // Questions:
-    // - When use indexed in events
     // - Is it better to not use uint256 everywhere? what are the pros/cons
 
-    event PlayerStarted(address player);
-    event PlayerBoosted(address player, Booster booster);
-    event Deposit(address player, uint256 amount);
-    event Withdraw(address player, uint256 amount);
+    event PlayerStarted(address indexed player);
+    event PlayerBoosted(address indexed player, Booster booster);
+    event Deposit(address indexed player, uint256 amount);
+    event Withdraw(address indexed player, uint256 amount);
 }
